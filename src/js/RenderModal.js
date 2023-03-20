@@ -1,47 +1,161 @@
-import Chat from "./Chat";
+import Chat from './Chat';
+import Tooltip from './Tooltip';
 
 export default class RenderModal {
-    constructor(container, port) {
-        this.container = container;
-        this.port = port;
-    }
+  constructor(container) {
+    this.container = container;
+    this.tooltipFactory = new Tooltip();
+  }
 
-    enterUser() {
-        const modalContainer = document.createElement('DIV');
-        const titleModal = document.createElement('H1');
-        const formModal = document.createElement('FORM');
-        const inputModal = document.createElement('INPUT');
-        const buttonModal = document.createElement('BUTTON');
-        
-        modalContainer.classList.add('modal-container');
-        titleModal.classList.add('modal-title');
-        formModal.classList.add('modal-form')
-        inputModal.classList.add('modal-input');
-        buttonModal.classList.add('modal-button');
-        
-        titleModal.textContent = 'Выберите псевдоним';
-        buttonModal.textContent = 'Продолжить';
-        
-        this.container.appendChild(modalContainer);
-        modalContainer.append(titleModal);
-        formModal.append(inputModal);
-        formModal.append(buttonModal);
-        modalContainer.append(formModal);
+  enterUser() {
+    const modalContainer = document.createElement('DIV');
+    const titleModal = document.createElement('H1');
+    const formModal = document.createElement('FORM');
+    const inputModal = document.createElement('INPUT');
+    const buttonModal = document.createElement('BUTTON');
 
-        formModal.addEventListener('submit', (e) => {
-            e.preventDefault();
+    modalContainer.classList.add('modal-container');
+    titleModal.classList.add('modal-title');
+    formModal.classList.add('modal-form');
+    inputModal.classList.add('modal-input');
+    buttonModal.classList.add('modal-button');
 
-            const nickname = inputModal.value;
-            
-            const chat = new Chat(this.container, this.port, nickname);
-            
-            window.api.add( { nickname } ).then(result => {
-                if (result) {
-                    modalContainer.classList.add('display-none');
-                    chat.renderChat()
-                }
-            })
+    formModal.setAttribute('novalidate', true);
+    inputModal.setAttribute('required', true);
+    inputModal.name = 'nickname';
+    inputModal.setCustomValidity('');
 
-        })
-    }
+    titleModal.textContent = 'Выберите псевдоним';
+    buttonModal.textContent = 'Продолжить';
+
+    this.container.appendChild(modalContainer);
+    modalContainer.append(titleModal);
+    formModal.append(inputModal);
+    formModal.append(buttonModal);
+    modalContainer.append(formModal);
+
+    let actualMessages = [];
+
+    const showTooltip = (message, el) => {
+      actualMessages.push({
+        name: el.name,
+        id: this.tooltipFactory.showTooltip(message, el),
+      });
+    };
+
+    formModal.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      actualMessages.forEach((message) => this.tooltipFactory.removeTooltip(message.id));
+      actualMessages = [];
+
+      let request; let result; let
+        json;
+
+      request = fetch('https://chat-backend-kd5r.onrender.com/index/', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      result = await request;
+
+      if (!result.ok) {
+        console.error('Ошибка');
+
+        return;
+      }
+
+      json = await result.json();
+
+      if (json) {
+        json.forEach((item) => {
+          if (item.nickname === inputModal.value) {
+            inputModal.setCustomValidity('customError');
+          } else {
+            inputModal.setCustomValidity('');
+          }
+        });
+      }
+
+      if (formModal.checkValidity()) {
+        const nickname = inputModal.value;
+
+        const chat = new Chat(this.container, nickname);
+
+        request = fetch('https://chat-backend-kd5r.onrender.com/subscriptions/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ nickname }),
+        });
+
+        result = await request;
+
+        if (!result.ok) {
+          console.error('Ошибка');
+
+          return;
+        }
+
+        json = await result.json();
+        const { status } = json;
+
+        if (status === 'OK') {
+          modalContainer.classList.add('display-none');
+          chat.renderChat();
+        }
+      } else {
+        const error = RenderModal.getError(inputModal);
+
+        if (error) {
+          showTooltip(error, inputModal);
+        }
+      }
+    });
+
+    const elementOnBlur = (e) => {
+      const el = e.target;
+
+      const error = RenderModal.getError(el);
+      if (error) {
+        showTooltip(error, el);
+      } else {
+        const currentErrorMessage = actualMessages.find((item) => item.name === el.name);
+
+        if (currentErrorMessage) {
+          this.tooltipFactory.removeTooltip(currentErrorMessage.id);
+        }
+      }
+
+      el.removeEventListener('blur', elementOnBlur);
+    };
+
+    inputModal.addEventListener('focus', () => {
+      inputModal.addEventListener('blur', elementOnBlur);
+    });
+  }
+
+  static getError(el) {
+    const errors = {
+      nickname: {
+        valueMissing: 'Заполните, пожалуйста, поле "Псевдоним"',
+        customError: 'Пользователь с таким псевдонимом уже есть в чате, придумайте другой',
+      },
+    };
+
+    const errorKey = Object.keys(ValidityState.prototype).find((key) => {
+      if (!el.name) return null;
+      if (key === 'valid') return null;
+
+      if (el.validity[key]) console.log(key);
+
+      return el.validity[key];
+    });
+
+    if (!errorKey) return null;
+
+    return errors[el.name][errorKey];
+  }
 }

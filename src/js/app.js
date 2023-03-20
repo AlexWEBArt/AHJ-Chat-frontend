@@ -1,12 +1,10 @@
-import SubscriptionApi from "./SubscriptionApi";
+import RenderModal from './RenderModal';
 
-import RenderModal from "./RenderModal";
+import background from '../img/cell.jpg';
 
-const port = 7070;
-
-window.api = new SubscriptionApi(`http://localhost:${port}/`);
+document.querySelector('body').style.backgroundImage = `url(${background})`;
 
 const container = document.querySelector('.app-container');
-const render = new RenderModal(container, port);
+const render = new RenderModal(container);
 
 render.enterUser();
