@@ -92,6 +92,7 @@ h1 {
     background-color: #fff;
     border: 2px solid black;
     border-radius: 10px;
+    overflow: auto;
 }
 
 .chat {
