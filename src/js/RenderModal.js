@@ -58,6 +58,9 @@ export default class RenderModal {
           'Content-Type': 'application/json',
         },
       });
+
+      RenderModal.generationLoading(modalContainer)
+
       result = await request;
 
       if (!result.ok) {
@@ -82,7 +85,7 @@ export default class RenderModal {
         const nickname = inputModal.value;
 
         const chat = new Chat(this.container, nickname);
-
+        
         request = fetch('https://chat-backend-kd5r.onrender.com/subscriptions/', {
           method: 'POST',
           headers: {
@@ -101,7 +104,7 @@ export default class RenderModal {
 
         json = await result.json();
         const { status } = json;
-
+        
         if (status === 'OK') {
           modalContainer.classList.add('display-none');
           chat.renderChat();
@@ -157,5 +160,21 @@ export default class RenderModal {
     if (!errorKey) return null;
 
     return errors[el.name][errorKey];
+  }
+
+  static generationLoading(container) {
+    if (!document.querySelector('.loadingio-spinner-spinner-ugc4sg2wum')) {
+      const imageContainer = document.createElement('DIV');
+      const animation = document.createElement('DIV');
+  
+      imageContainer.classList.add('loadingio-spinner-spinner-ugc4sg2wum');
+      animation.classList.add('ldio-7nr8cpu8w2k');
+  
+      container.appendChild(imageContainer);
+      imageContainer.append(animation);
+      for (let i = 12; i !== 0; i-- ) {
+        animation.append(document.createElement('DIV'))
+      }
+    }
   }
 }
