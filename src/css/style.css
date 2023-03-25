@@ -55,6 +55,7 @@ h1 {
     padding: 20px;
     overflow: auto;
     position: fixed;
+    text-align: center;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
@@ -62,13 +63,27 @@ h1 {
     border: 2px solid black;
 }
 
+.modal-form {
+  text-align: center;
+}
+
+.modal-button {
+    width: 120px;
+    height: 40px;
+    color: #fff;
+    font-size: 16px;
+    outline: none;
+    background-color: #93dbe9;
+    border-radius: 5px;
+
+    border-width: 0;
+    border-style: none;
+    border-image: none;
+}
+
 .display-none {
     display: none;
 }
-
-/* .subscriptions, .chat {
-    white-space: pre;
-} */
 
 .form-error {
     position: absolute;

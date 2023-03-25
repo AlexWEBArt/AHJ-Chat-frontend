@@ -141,6 +141,7 @@ export default class RenderModal {
   }
 
   static getError(el) {
+    document.querySelector('.loadingio-spinner-spinner-ugc4sg2wum').remove();
     const errors = {
       nickname: {
         valueMissing: 'Заполните, пожалуйста, поле "Псевдоним"',
